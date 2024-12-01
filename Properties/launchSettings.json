@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AdventOfCode2024": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\MICRO\\OneDrive\\Documents\\CSHARP_stuff\\AdventOfCode2024",
+      "hotReloadEnabled": true
+    }
+  }
+}
