@@ -29,10 +29,10 @@ IReadOnlyDictionary<int, IDay> DayByNumber = new Dictionary<int, IDay>
     { 24, new Day24() },
     { 25, new Day25() },
 };
-
+const int DebbugDay = 3;
 var projectPath = Directory.GetCurrentDirectory();
 var isTest = args.Contains("-t");
-var currentDay = args.Contains("-d") ? int.Parse(args[Array.IndexOf(args, "-d") + 1]) : 1;
+var currentDay = args.Contains("-d") ? int.Parse(args[Array.IndexOf(args, "-d") + 1]) : DebbugDay;
 var onlyPart1 = args.Contains("-p1");
 var onlyPart2 = !onlyPart1 && args.Contains("-p2");
 Console.WriteLine();
