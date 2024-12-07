@@ -45,21 +45,14 @@ public class Day07 : IDay
 
 enum Operations { sum, prod, concat }
 
-class Equation
+class Equation(long target, long[] factors)
 {
-    private readonly Operations[] operations;
+    protected readonly Operations[] operations = new Operations[factors.Length - 1];
 
-    public long Target { get; }
-    public long[] Factors { get; }
+    public long Target { get; } = target;
+    public long[] Factors { get; } = factors;
 
-    public Equation(long target, long[] factors)
-    {
-        Target = target;
-        Factors = factors;
-        operations = new Operations[factors.Length - 1];
-    }
-
-    public long Evaluate()
+    public virtual long Evaluate()
     {
         var accumulator = Factors[0];
         for (int i = 0; i < operations.Length; i++)
@@ -75,7 +68,7 @@ class Equation
 
     public bool IsAllProd() => operations.All(o => o is Operations.prod);
 
-    public void NextEnumeration()
+    public virtual void NextEnumeration()
     {
         for (int i = 0; i < operations.Length; i++)
         {
@@ -114,21 +107,9 @@ class Equation
     }
 }
 
-class EquationWithConcat
+class EquationWithConcat(long target, long[] factors) : Equation(target, factors)
 {
-    private readonly Operations[] operations;
-
-    public long Target { get; }
-    public long[] Factors { get; }
-
-    public EquationWithConcat(long target, long[] factors)
-    {
-        Target = target;
-        Factors = factors;
-        operations = new Operations[factors.Length - 1];
-    }
-
-    public long Evaluate()
+    public override long Evaluate()
     {
         var accumulator = Factors[0];
         for (int i = 0; i < operations.Length; i++)
@@ -144,9 +125,7 @@ class EquationWithConcat
         return accumulator;
     }
 
-    public bool IsAllProd() => operations.All(o => o is Operations.prod);
-
-    public void NextEnumeration()
+    public override void NextEnumeration()
     {
         for (int i = 0; i < operations.Length; i++)
         {
@@ -162,30 +141,6 @@ class EquationWithConcat
             }
 
             operations[i] = Operations.sum;
-        }
-    }
-
-    public long Solve()
-    {
-        SetToProd();
-        do
-        {
-            if (Target == Evaluate())
-            {
-                return Target;
-            }
-
-            NextEnumeration();
-        } while (!IsAllProd());
-
-        return 0;
-    }
-
-    private void SetToProd()
-    {
-        for (int i = 0; i < operations.Length; i++)
-        {
-            operations[i] = Operations.prod;
         }
     }
 }
