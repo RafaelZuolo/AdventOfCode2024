@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode2024;
 
-public static class StringExtensions
+public static class Utils
 {
     public static IList<string> ParseLines(this string input)
     {
