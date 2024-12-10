@@ -16,7 +16,7 @@ public class Day09 : IDay
                 blocks.Add(new MemoryBlock(i / 2, int.Parse(currentChar.ToString())));
                 test += int.Parse(currentChar.ToString());
             }
-            else if (int.Parse(currentChar.ToString()) != 0)
+            else
             {
                 freeBlocks.Add(new MemoryBlock(-1, int.Parse(currentChar.ToString())));
             }
@@ -28,28 +28,28 @@ public class Day09 : IDay
         var compressedBlocksRepresentation = new List<int>();
         while (currentBlockIndex < lastBlockIndex)
         {
-            compressedBlocksRepresentation.AddRange(blocks[currentBlockIndex].AsRange());
+            compressedBlocksRepresentation.AddRange(blocks[currentBlockIndex].SubtractAllAsRange());
             currentBlockIndex++;
-            while (currentFreeBlockIndex < freeBlocks.Count && freeBlocks[currentFreeBlockIndex].Size > 0)
+            while (currentFreeBlockIndex < freeBlocks.Count
+                && freeBlocks[currentFreeBlockIndex].Size > 0
+                && currentBlockIndex < lastBlockIndex)
             {
                 var lastBlock = blocks[lastBlockIndex];
                 var subtracted = freeBlocks[currentFreeBlockIndex].TrySubtract(lastBlock.Size);
-
-                lastBlock.TrySubtract(subtracted);
+                compressedBlocksRepresentation.AddRange(lastBlock.SubtractAsRange(subtracted));
                 if (lastBlock.Size == 0) lastBlockIndex--;
-
-                compressedBlocksRepresentation.AddRange(lastBlock.AsRange(subtracted));
             }
             currentFreeBlockIndex++;
         }
-        compressedBlocksRepresentation.AddRange(blocks[currentBlockIndex].AsRange());
-
+        compressedBlocksRepresentation.AddRange(blocks[currentBlockIndex].SubtractAllAsRange());
         var sum = (long)0;
-        for (int i = 0; i < compressedBlocksRepresentation.Count; i++)
+        for (long i = 0; i < compressedBlocksRepresentation.Count; i++)
         {
-            sum += i * compressedBlocksRepresentation[i];
+            var value = compressedBlocksRepresentation[(int)i];
+            var partial = i * value;
+            sum += partial;
         }
-        //Console.WriteLine(string.Join(", ", compressedBlocksRepresentation));
+
         return sum.ToString();
     }
 
@@ -61,17 +61,19 @@ public class Day09 : IDay
 
 internal class MemoryBlock(int id, int size)
 {
-    public bool IsFree => Id >= 0;
     public int Id { get; } = id;
     public int Size { get; set; } = size;
 
-    public IEnumerable<int> AsRange()
+    public IEnumerable<int> SubtractAllAsRange()
     {
-        return Enumerable.Repeat(Id, Size);
+        var subtracted = Size;
+        Size = 0;
+        return Enumerable.Repeat(Id, subtracted);
     }
 
-    public IEnumerable<int> AsRange(int subtracted)
+    public IEnumerable<int> SubtractAsRange(int subtracted)
     {
+        Size -= subtracted;
         return Enumerable.Repeat(Id, subtracted);
     }
 
