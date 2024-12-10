@@ -4,10 +4,7 @@ public class Day10 : IDay
 {
     public string SolvePart1(string input)
     {
-        var lines = input.ParseLines();
-        var topographic = lines
-            .Select(l => l.Select(c => int.Parse(c.ToString())).ToList())
-            .ToList();
+        var topographic = input.ParseAsMatrix(c => int.Parse(c.ToString()));
 
         long sumOfScores = 0;
         for (int i = 0; i < topographic.Count; i++)
@@ -59,10 +56,7 @@ public class Day10 : IDay
 
     public string SolvePart2(string input)
     {
-        var lines = input.ParseLines();
-        var topographic = lines
-            .Select(l => l.Select(c => int.Parse(c.ToString())).ToList())
-            .ToList();
+        var topographic = input.ParseAsMatrix(c => int.Parse(c.ToString()));
 
         long sumOfScores = 0;
         for (int i = 0; i < topographic.Count; i++)
@@ -75,8 +69,6 @@ public class Day10 : IDay
 
         return sumOfScores.ToString();
     }
-
-
 
     private static long GetAugmentedScore(int i, int j, List<List<int>> topographic)
     {
