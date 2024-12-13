@@ -15,4 +15,14 @@ public static class Utils
             .Select(l => l.Select(selector).ToList())
             .ToList();
     }
+
+    public static bool IsOutOfBounds<T>(this List<List<T>> matrix, int i, int j)
+    {
+        return i < 0 || i >= matrix.Count || j < 0 || j >= matrix[i].Count;
+    }
+
+    public static List<List<bool>> ToFalseMatrix<T>(this List<List<T>> matrix)
+    {
+        return matrix.Select(l => l.Select(_ => false).ToList()).ToList();
+    }
 }
