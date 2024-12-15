@@ -16,6 +16,19 @@ public static class Utils
             .ToList();
     }
 
+    public static void PrintMatrix<T>(this List<List<T>> matrix)
+    {
+        Console.WriteLine("------------------------------");
+        for (int i = 0; i < matrix.Count; i++)
+        {
+            Console.WriteLine();
+            for (int j = 0; j < matrix[i].Count; j++)
+            {
+                Console.Write(matrix[i][j]);
+            }
+        }
+    }
+
     public static bool IsOutOfBounds<T>(this List<List<T>> matrix, int i, int j)
     {
         return i < 0 || i >= matrix.Count || j < 0 || j >= matrix[i].Count;
