@@ -73,8 +73,78 @@ public static class Utils
             frontierEdges.RemoveWhere(x => visited.Contains(x.To));
         }
     }
-}
 
+    public static ISet<Vertex> GetVeticesFromMinPaths(IDictionary<Vertex, long> distances, Vertex start, Vertex end)
+    {
+        var vertices = new HashSet<Vertex> { end };
+
+        GetMinPath(end);
+
+        return vertices;
+
+        void GetMinPath(Vertex current)
+        {
+            if (current == start) return;
+
+            var candidates = distances.Keys.Where(v => v.IsAdjacentTo(current)).ToHashSet();
+
+            foreach (var candidate in candidates)
+            {
+                if (distances[candidate] + candidate.Adjacency.Single(e => e.To == current).Weight == distances[current])
+                {
+                    vertices.Add(candidate);
+                    GetMinPath(candidate);
+                }
+            }
+        }
+    }
+
+    public static IDictionary<Vertex, long> DijkstraWithPrevious(
+        this ISet<Vertex> vertices,
+        Vertex start,
+        Vertex end,
+        out IDictionary<Vertex, Vertex> previousVertex)
+    {
+        var finalDistances = vertices.ToDictionary(v => v, v => (long)-1); // -1 represent unreachable vertex
+        var visited = new HashSet<Vertex> { start };
+        var frontierVertices = start.Adjacency.ToHashSet();
+        finalDistances[start] = 0;
+
+        previousVertex = new Dictionary<Vertex, Vertex>();
+
+        while (!visited.Contains(end) && frontierVertices.Count > 0)
+        {
+            Explore(finalDistances, frontierVertices, visited, previousVertex);
+        }
+
+        return finalDistances;
+
+        static void Explore(
+            Dictionary<Vertex, long> finalDistances,
+            HashSet<Edge> frontierEdges,
+            HashSet<Vertex> visited,
+            IDictionary<Vertex, Vertex> previousVertex)
+        {
+            var minDist = long.MaxValue;
+            Edge? minEdge = null;
+            foreach (var edge in frontierEdges)
+            {
+                if (edge.Weight + finalDistances[edge.From] < minDist)
+                {
+                    minDist = edge.Weight + finalDistances[edge.From];
+                    minEdge = edge;
+                }
+            }
+
+            finalDistances[minEdge!.To] = minDist;
+
+            visited.Add(minEdge.To);
+            previousVertex.Add(minEdge.To, minEdge.From);
+            frontierEdges.UnionWith(minEdge.To.Adjacency);
+            frontierEdges.RemoveWhere(x => visited.Contains(x.To));
+        }
+    }
+}
 
 public class Vertex(int I, int J, Direction Direction = Direction.Irrelevant) : IEquatable<Vertex>
 {

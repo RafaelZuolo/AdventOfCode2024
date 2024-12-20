@@ -127,7 +127,7 @@ public class Day16 : IDay
         return validVertex.Count.ToString();
     }
 
-    private ISet<Vertex> GetVeticesFromMinPaths(IDictionary<Vertex, long> distances, Vertex start, Vertex end)
+    private static ISet<Vertex> GetVeticesFromMinPaths(IDictionary<Vertex, long> distances, Vertex start, Vertex end)
     {
         var vertices = new HashSet<Vertex> { end };
         var candidates = distances.Keys.Where(v => v.IsAdjacentTo(end)).ToHashSet();
@@ -152,5 +152,4 @@ public class Day16 : IDay
             }
         }
     }
-
 }
