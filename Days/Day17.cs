@@ -127,10 +127,8 @@ public class Day17 : IDay
             {
                 comp.Compute();
             }
-            if (int.Parse(comp.ToString().Split(',')[0]) == program[currentMatch])
+            if (computer[1].Split(": ")[1].EndsWith(comp.ToString()))
             {
-                Console.WriteLine(regA.ToString());
-                Console.ReadLine();
                 currentMatch++;
                 regA *= 8;
             }
@@ -140,6 +138,6 @@ public class Day17 : IDay
             }
         } while (currentMatch < program.Length);
 
-        return regA.ToString();
+        return (regA / 8).ToString();
     }
 }

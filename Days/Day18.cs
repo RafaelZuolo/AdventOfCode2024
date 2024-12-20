@@ -76,10 +76,9 @@ public class Day18 : IDay
         var blocks = input.ParseLines()
             .Select(l => (int.Parse(l.Split(',')[0]), int.Parse(l.Split(',')[1])))
             .ToList();
-
-
         var blockingBlock = BinarySearch(blocks);
-        return $"{blockingBlock}";
+
+        return $"{blockingBlock.Item1},{blockingBlock.Item2}";
 
         (int, int) BinarySearch(List<(int, int)> block)
         {
