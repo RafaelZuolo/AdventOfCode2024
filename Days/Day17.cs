@@ -104,6 +104,42 @@ public class Day17 : IDay
 
     public string SolvePart2(string input)
     {
-        return "not solved";
+        var computer = input.Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var registers = computer[0].Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => long.Parse(l.Split(": ")[1]))
+            .ToArray();
+
+        var regA = (long)0;
+        var regB = registers[1];
+        var regC = registers[2];
+        var currentMatch = 0;
+
+        var program = computer[1]
+            .Split(": ")[1]
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToArray();
+
+        do
+        {
+            var comp = new Computer(program, regA, regB, regC)!;
+            while (comp.CanCompute)
+            {
+                comp.Compute();
+            }
+            if (int.Parse(comp.ToString().Split(',')[0]) == program[currentMatch])
+            {
+                Console.WriteLine(regA.ToString());
+                Console.ReadLine();
+                currentMatch++;
+                regA *= 8;
+            }
+            else
+            {
+                regA++;
+            }
+        } while (currentMatch < program.Length);
+
+        return regA.ToString();
     }
 }

@@ -104,87 +104,7 @@ public class Day06 : IDay
         }
     }
 }
-
-internal class Guard(int verticalPosition, int horizontalPosition, char[,] lab)
-{
-    private Direction direction = Direction.Up;
-
-    public int VerticalPosition { get; private set; } = verticalPosition;
-    public int HorizontalPosition { get; private set; } = horizontalPosition;
-    public char[,] Lab { get; } = lab;
-
-    public bool IsInBorder()
-    {
-        return VerticalPosition == 0
-            || HorizontalPosition == 0
-            || VerticalPosition == Lab.GetLength(0) - 1
-            || HorizontalPosition == Lab.GetLength(1) - 1;
-    }
-
-    internal void Step()
-    {
-        Lab[VerticalPosition, HorizontalPosition] = 'X';
-        switch (direction)
-        {
-            case Direction.Up:
-            {
-                if (Lab[VerticalPosition - 1, HorizontalPosition] != '#')
-                {
-                    VerticalPosition--;
-                }
-                else
-                {
-                    direction = Direction.Right;
-                }
-                break;
-            }
-            case Direction.Right:
-            {
-                if (Lab[VerticalPosition, HorizontalPosition + 1] != '#')
-                {
-                    HorizontalPosition++;
-                }
-                else
-                {
-                    direction = Direction.Down;
-                }
-                break;
-            }
-            case Direction.Down:
-            {
-                if (Lab[VerticalPosition + 1, HorizontalPosition] != '#')
-                {
-                    VerticalPosition++;
-                }
-                else
-                {
-                    direction = Direction.Left;
-                }
-                break;
-            }
-            case Direction.Left:
-            {
-                if (Lab[VerticalPosition, HorizontalPosition - 1] != '#')
-                {
-                    HorizontalPosition--;
-                }
-                else
-                {
-                    direction = Direction.Up;
-                }
-                break;
-            }
-        }
-        Lab[VerticalPosition, HorizontalPosition] = 'X';
-    }
-}
-
-internal enum Direction
-{
-    Up, Down, Left, Right
-}
-
-internal class GuardWithCycleDetection(int verticalPosition, int horizontalPosition, ISet<char>[,] lab)
+class GuardWithCycleDetection(int verticalPosition, int horizontalPosition, ISet<char>[,] lab)
 {
     private Direction direction = Direction.Up;
 
@@ -273,4 +193,87 @@ internal class GuardWithCycleDetection(int verticalPosition, int horizontalPosit
             }
         }
     }
+    enum Direction
+    {
+        Up, Down, Left, Right
+    }
+}
+internal class Guard(int verticalPosition, int horizontalPosition, char[,] lab)
+{
+    private Direction direction = Direction.Up;
+
+    public int VerticalPosition { get; private set; } = verticalPosition;
+    public int HorizontalPosition { get; private set; } = horizontalPosition;
+    public char[,] Lab { get; } = lab;
+
+    public bool IsInBorder()
+    {
+        return VerticalPosition == 0
+            || HorizontalPosition == 0
+            || VerticalPosition == Lab.GetLength(0) - 1
+            || HorizontalPosition == Lab.GetLength(1) - 1;
+    }
+
+    internal void Step()
+    {
+        Lab[VerticalPosition, HorizontalPosition] = 'X';
+        switch (direction)
+        {
+            case Direction.Up:
+            {
+                if (Lab[VerticalPosition - 1, HorizontalPosition] != '#')
+                {
+                    VerticalPosition--;
+                }
+                else
+                {
+                    direction = Direction.Right;
+                }
+                break;
+            }
+            case Direction.Right:
+            {
+                if (Lab[VerticalPosition, HorizontalPosition + 1] != '#')
+                {
+                    HorizontalPosition++;
+                }
+                else
+                {
+                    direction = Direction.Down;
+                }
+                break;
+            }
+            case Direction.Down:
+            {
+                if (Lab[VerticalPosition + 1, HorizontalPosition] != '#')
+                {
+                    VerticalPosition++;
+                }
+                else
+                {
+                    direction = Direction.Left;
+                }
+                break;
+            }
+            case Direction.Left:
+            {
+                if (Lab[VerticalPosition, HorizontalPosition - 1] != '#')
+                {
+                    HorizontalPosition--;
+                }
+                else
+                {
+                    direction = Direction.Up;
+                }
+                break;
+            }
+        }
+        Lab[VerticalPosition, HorizontalPosition] = 'X';
+    }
+
+    enum Direction
+    {
+        Up, Down, Left, Right
+    }
+
 }
