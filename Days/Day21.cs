@@ -24,9 +24,6 @@ public class Day21 : IDay
     private static readonly List<char> numericKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A'];
     private static readonly List<char> directionalKeys = ['<', '>', '^', 'v', 'A'];
 
-    private const long DownCost = 1;
-    private const long LeftCost = 1;
-
     public string SolvePart1(string input)
     {
         var directionalSequencesByNumericKeyPair = numericKeys
@@ -45,11 +42,14 @@ public class Day21 : IDay
             directionalSequenceByDirectionalFromTo[pair.Key] = BfsDirectionalKeypad(pair.Key.From, pair.Key.To);
         }
 
+        var codesRaw1 = input.ParseLines().Select(c => ChangeCodeToRobotInstruction(c, directionalSequencesByNumericKeyPair)).ToList();
+
         foreach (var pair in directionalSequencesByNumericKeyPair)
         {
             var newSequences = IterateRobot(pair.Value, directionalSequenceByDirectionalFromTo);
             directionalSequencesByNumericKeyPair[pair.Key] = newSequences;
         }
+        var codesRaw2 = input.ParseLines().Select(c => ChangeCodeToRobotInstruction(c, directionalSequencesByNumericKeyPair)).ToList();
         foreach (var pair in directionalSequencesByNumericKeyPair)
         {
             var newSequences = IterateRobot(pair.Value, directionalSequenceByDirectionalFromTo);
@@ -71,6 +71,7 @@ public class Day21 : IDay
     private string ChangeCodeToRobotInstruction(string code, Dictionary<(char From, char To), List<char>> directionalSequencesByNumericKeyPair)
     {
         var result = new StringBuilder();
+        code = "A" + code;
         for (var i = 0; i < code.Length - 1; i++)
         {
             result.Append(string.Concat(directionalSequencesByNumericKeyPair[(code[i], code[i + 1])]));
@@ -81,11 +82,11 @@ public class Day21 : IDay
 
     private List<char> IterateRobot(List<char> sequenceList, Dictionary<(char From, char To), List<char>> directionalSequenceByDirectionalFromTo)
     {
-        if (sequenceList.Count == 1) return ['A'];
+        var appendedSequence = sequenceList.Prepend('A').ToList();
         var result = new List<char>();
-        for (var i = 0; i < sequenceList.Count - 1; i++)
+        for (var i = 0; i < appendedSequence.Count - 1; i++)
         {
-            result.AddRange(directionalSequenceByDirectionalFromTo[(sequenceList[i], sequenceList[i + 1])]);
+            result.AddRange(directionalSequenceByDirectionalFromTo[(appendedSequence[i], appendedSequence[i + 1])]);
         }
 
         return result;
