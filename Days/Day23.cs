@@ -34,7 +34,6 @@ public class Day23 : IDay
         var undirectedEdges = input.ParseLines().Select(l => (UName: l.Split('-')[0], VName: l.Split('-')[1]));
         var vertices = ParseGraph(undirectedEdges);
 
-        var maxDegree = vertices.Select(v => v.Degree).Max();
         var triangles = new HashSet<Clique>();
         foreach (var u in vertices)
         {
@@ -49,6 +48,7 @@ public class Day23 : IDay
                 }
             }
         }
+
         var maximalCliques = triangles;
         while (maximalCliques.Count > 1)
         {
