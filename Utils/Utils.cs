@@ -154,7 +154,12 @@ public class Vertex(int I = 0, int J = 0, Direction Direction = Direction.Irrele
     public Direction Direction { get; } = Direction;
     public string Name { get; } = name;
 
+    public int Degree => Adjacency.Count;
     public ISet<Vertex> AdjacencySet => Adjacency.Select(e => e.To).ToHashSet();
+
+    public ISet<Vertex> GetInducedAdjacency(ISet<Vertex> induced) => AdjacencySet.Where(induced.Contains).ToHashSet();
+    public int GetInducedDegree(ISet<Vertex> induced) => GetInducedAdjacency(induced).Count;
+
     public bool IsAdjacentTo(Vertex other)
     {
         return Adjacency.Any(e => e.To == other);
