@@ -146,13 +146,15 @@ public static class Utils
     }
 }
 
-public class Vertex(int I, int J, Direction Direction = Direction.Irrelevant) : IEquatable<Vertex>
+public class Vertex(int I = 0, int J = 0, Direction Direction = Direction.Irrelevant, string name = "") : IEquatable<Vertex>
 {
     public ISet<Edge> Adjacency { get; } = new HashSet<Edge>();
     public int I { get; } = I;
     public int J { get; } = J;
     public Direction Direction { get; } = Direction;
+    public string Name { get; } = name;
 
+    public ISet<Vertex> AdjacencySet => Adjacency.Select(e => e.To).ToHashSet();
     public bool IsAdjacentTo(Vertex other)
     {
         return Adjacency.Any(e => e.To == other);
@@ -160,7 +162,7 @@ public class Vertex(int I, int J, Direction Direction = Direction.Irrelevant) : 
 
     public bool Equals(Vertex? other)
     {
-        return other is Vertex v && v.I == I && v.J == J && v.Direction == Direction;
+        return other is Vertex v && v.I == I && v.J == J && v.Direction == Direction && v.Name == Name;
     }
 
     public override bool Equals(object? obj)
@@ -170,13 +172,13 @@ public class Vertex(int I, int J, Direction Direction = Direction.Irrelevant) : 
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(I, J, Direction);
+        return HashCode.Combine(I, J, Direction, Name);
     }
 
     public static bool operator ==(Vertex current, Vertex other) => current.Equals(other);
     public static bool operator !=(Vertex current, Vertex other) => !(current == other);
 }
 
-public record Edge(Vertex From, Vertex To, long Weight);
+public record Edge(Vertex From, Vertex To, long Weight = 1);
 
 public enum Direction { Vertical, Horizontal, Irrelevant }
