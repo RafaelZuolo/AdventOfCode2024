@@ -35,20 +35,7 @@ public class Day23 : IDay
         var vertices = ParseGraph(undirectedEdges);
 
         var maxDegree = vertices.Select(v => v.Degree).Max();
-        var password = "";
-        //for (int i = maxDegree + 1; i >= 3; i--)
-        //{
-        //    if (TryFindClique(vertices, i, out var clique))
-        //    {
-        //        var sortedClique = clique.Select(v => v.Name).ToList();
-        //        sortedClique.Sort();
-        //        password = string.Join(',', sortedClique);
-
-        //        break;
-        //    }
-        //}
-
-        var triangles = new HashSet<HashSet<Vertex>>();
+        var triangles = new HashSet<Clique>();
         foreach (var u in vertices)
         {
             foreach (var v in u.AdjacencySet)
@@ -57,7 +44,7 @@ public class Day23 : IDay
                 {
                     if (w.IsAdjacentTo(u))
                     {
-                        triangles.Add([u, v, w]);
+                        triangles.Add(new Clique(new HashSet<Vertex>() { u, v, w }));
                     }
                 }
             }
@@ -68,68 +55,29 @@ public class Day23 : IDay
             maximalCliques = GrowCliques(vertices, maximalCliques);
         }
 
-        var names = maximalCliques.Single().Select(v => v.Name).ToList();
+        var names = maximalCliques.Single().Vertices.Select(v => v.Name).ToList();
         names.Sort();
-        password = string.Join(',', names);
+        var password = string.Join(',', names);
 
         return password;
     }
 
-    private HashSet<HashSet<Vertex>> GrowCliques(ISet<Vertex> vertices, HashSet<HashSet<Vertex>> maximalCliques)
+    private static HashSet<Clique> GrowCliques(ISet<Vertex> vertices, HashSet<Clique> maximalCliques)
     {
-        var augmentedCliques = new HashSet<HashSet<Vertex>>();
-        foreach (var vertex in vertices)
+        var augmentedCliques = new HashSet<Clique>();
+        var currentCliqueSize = maximalCliques.First().Vertices.Count;
+        foreach (var vertex in vertices.Where(v => v.Degree >= currentCliqueSize))
         {
             foreach (var clique in maximalCliques)
             {
-                if (clique.All(cliqueMember => cliqueMember.IsAdjacentTo(vertex)))
+                if (clique.Vertices.All(cliqueMember => cliqueMember.IsAdjacentTo(vertex)))
                 {
-                    augmentedCliques.Add(new HashSet<Vertex>(clique) { vertex });
+                    augmentedCliques.Add(new Clique(new HashSet<Vertex>(clique.Vertices) { vertex }));
                 }
             }
         }
 
         return augmentedCliques;
-    }
-
-    private bool TryFindClique(ISet<Vertex> vertices, int cliqueSize, out ISet<Vertex> clique)
-    {
-        clique = new HashSet<Vertex>();
-        var candidates = vertices.Where(v => v.Degree >= cliqueSize - 1).ToHashSet();
-        if (candidates.Count < cliqueSize)
-        {
-            return false;
-        }
-
-        if (cliqueSize is 3)
-        {
-            foreach (var u in candidates)
-            {
-                foreach (var v in u.GetInducedAdjacency(candidates))
-                {
-                    foreach (var w in v.GetInducedAdjacency(candidates))
-                    {
-                        if (w.IsAdjacentTo(u))
-                        {
-                            clique = new HashSet<Vertex>() { u, v, w };
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        foreach (var vertex in candidates)
-        {
-            if (TryFindClique(vertex.GetInducedAdjacency(candidates), cliqueSize - 1, out var subClique))
-            {
-                clique.Add(vertex);
-                clique.UnionWith(subClique);
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static ISet<Vertex> ParseGraph(IEnumerable<(string UName, string VName)> undirectedEdges)
@@ -198,7 +146,7 @@ public class Day23 : IDay
 
         public override int GetHashCode()
         {
-            return Vertices.Sum(v => v.GetHashCode());
+            return (int)Vertices.Sum(v => (long)v.GetHashCode());
         }
     }
 }
