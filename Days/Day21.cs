@@ -1,9 +1,4 @@
-﻿
-
-
-
-
-using System.Text;
+﻿using System.Text;
 
 namespace AdventOfCode2024.Days;
 
@@ -28,15 +23,14 @@ public class Day21 : IDay
     {
         var directionalSequencesByNumericKeyPair = numericKeys
             .SelectMany(n => numericKeys.Select(m => (From: n, To: m)))
-            .ToDictionary(key => key, value => new List<char>());
+            .ToDictionary(key => key, value => new List<List<char>>());
         foreach (var pair in directionalSequencesByNumericKeyPair)
         {
             directionalSequencesByNumericKeyPair[pair.Key] = BfsNumericKeypad(pair.Key.From, pair.Key.To);
         }
-
         var directionalSequenceByDirectionalFromTo = directionalKeys
             .SelectMany(n => directionalKeys.Select(m => (From: n, To: m)))
-            .ToDictionary(key => key, value => new List<char>());
+            .ToDictionary(key => key, value => new List<List<char>>());
         foreach (var pair in directionalSequenceByDirectionalFromTo)
         {
             directionalSequenceByDirectionalFromTo[pair.Key] = BfsDirectionalKeypad(pair.Key.From, pair.Key.To);
@@ -44,65 +38,72 @@ public class Day21 : IDay
 
         var codesRaw1 = input.ParseLines().Select(c => ChangeCodeToRobotInstruction(c, directionalSequencesByNumericKeyPair)).ToList();
 
-        foreach (var pair in directionalSequencesByNumericKeyPair)
-        {
-            var newSequences = IterateRobot(pair.Value, directionalSequenceByDirectionalFromTo);
-            directionalSequencesByNumericKeyPair[pair.Key] = newSequences;
-        }
-        var codesRaw2 = input.ParseLines().Select(c => ChangeCodeToRobotInstruction(c, directionalSequencesByNumericKeyPair)).ToList();
-        foreach (var pair in directionalSequencesByNumericKeyPair)
-        {
-            var newSequences = IterateRobot(pair.Value, directionalSequenceByDirectionalFromTo);
-            directionalSequencesByNumericKeyPair[pair.Key] = newSequences;
-        }
+        var codesRaw2 = codesRaw1
+            .Select(d => d.SelectMany(c => ChangeCodeToRobotInstruction(c, directionalSequenceByDirectionalFromTo)).ToList())
+            .ToList();
 
-        var codes = input.ParseLines().Select(c => ChangeCodeToRobotInstruction(c, directionalSequencesByNumericKeyPair)).ToList();
+        var codes = codesRaw2
+            .Select(d => d.SelectMany(c => ChangeCodeToRobotInstruction(c, directionalSequenceByDirectionalFromTo)).ToList())
+            .ToList();
+        var trimmedCodes = codes.Select(TrimmCodes).ToList();
         var numericValuesOfCodes = input.ParseLines().Select(l => long.Parse(l[..3])).ToList();
 
         var sum = (long)0;
-        for (var i = 0; i < codes.Count; i++)
+        for (var i = 0; i < trimmedCodes.Count; i++)
         {
-            sum += numericValuesOfCodes[i] * codes[i].Length;
+            sum += numericValuesOfCodes[i] * trimmedCodes[i].First().Length;
         }
 
         return sum.ToString();
     }
 
-    private string ChangeCodeToRobotInstruction(string code, Dictionary<(char From, char To), List<char>> directionalSequencesByNumericKeyPair)
+    private static List<string> TrimmCodes(List<string> codes)
+    {
+        var minLengh = codes.Select(c => c.Length).Min();
+
+        return codes.Where(c => c.Length == minLengh).ToList();
+    }
+
+    private List<string> ChangeCodeToRobotInstruction(
+        string code,
+        Dictionary<(char From, char To), List<List<char>>> directionalSequencesByKeyPair)
     {
         var result = new StringBuilder();
         code = "A" + code;
-        for (var i = 0; i < code.Length - 1; i++)
-        {
-            result.Append(string.Concat(directionalSequencesByNumericKeyPair[(code[i], code[i + 1])]));
-        }
+        var finalInstructions = new List<string>();
+        BuildSequence(code, 0, "");
 
-        return result.ToString();
+        return finalInstructions;
+
+        void BuildSequence(
+        string code,
+        int index,
+        string currentSequence)
+        {
+            if (index == code.Length - 1)
+            {
+                finalInstructions.Add(currentSequence);
+                return;
+            }
+
+            foreach (var sequence in directionalSequencesByKeyPair[(code[index], code[index + 1])])
+            {
+                BuildSequence(code, index + 1, currentSequence + new string(sequence.ToArray()));
+            }
+        }
     }
 
-    private List<char> IterateRobot(List<char> sequenceList, Dictionary<(char From, char To), List<char>> directionalSequenceByDirectionalFromTo)
-    {
-        var appendedSequence = sequenceList.Prepend('A').ToList();
-        var result = new List<char>();
-        for (var i = 0; i < appendedSequence.Count - 1; i++)
-        {
-            result.AddRange(directionalSequenceByDirectionalFromTo[(appendedSequence[i], appendedSequence[i + 1])]);
-        }
-
-        return result;
-    }
-
-    private List<char> BfsNumericKeypad(char from, char to)
+    private List<List<char>> BfsNumericKeypad(char from, char to)
     {
         return Bfs(from, to, numericKeypad);
     }
 
-    private List<char> BfsDirectionalKeypad(char from, char to)
+    private List<List<char>> BfsDirectionalKeypad(char from, char to)
     {
         return Bfs(from, to, directionalKeypad);
     }
 
-    private List<char> Bfs(char from, char to, List<List<char>> keypad)
+    private List<List<char>> Bfs(char from, char to, List<List<char>> keypad)
     {
         var fromI = Enumerable.Range(0, keypad.Count)
             .Where(index => keypad[index].Contains(from))
@@ -113,74 +114,36 @@ public class Day21 : IDay
             .Single();
         var toJ = Enumerable.Range(0, keypad[toI].Count).Where(index => keypad[toI][index] == to).Single();
 
-        return GenerateGraphAndGetMinPath(fromI, fromJ, toI, toJ, keypad);
+        return GenerateGraphAndGetMinPaths(fromI, fromJ, toI, toJ, keypad);
     }
 
-    private static List<char> GenerateGraphAndGetMinPath(int fromI, int fromJ, int toI, int toJ, List<List<char>> maze)
+    private static List<List<char>> GenerateGraphAndGetMinPaths(int fromI, int fromJ, int toI, int toJ, List<List<char>> maze)
     {
-        var vertices = new HashSet<Vertex>();
-        for (var i = 0; i < maze.Count; i++)
+        if (fromI == toI && fromJ == toJ) return [['A']];
+
+        var verticalSteps = toI - fromI;
+        var verticalMovement = Enumerable.Range(0, Math.Abs(verticalSteps)).Select(_ => verticalSteps > 0 ? 'v' : '^').ToList();
+
+        var horizontalSteps = toJ - fromJ;
+        var horizontalMovement = Enumerable.Range(0, Math.Abs(horizontalSteps)).Select(_ => horizontalSteps > 0 ? '>' : '<').ToList();
+
+        if (verticalSteps == 0) return [[.. horizontalMovement, 'A']];
+        if (horizontalSteps == 0) return [[.. verticalMovement, 'A']];
+
+        if (maze[toI][fromJ] is '#')
         {
-            for (var j = 0; j < maze[i].Count; j++)
-            {
-                if (maze[i][j] is not '#')
-                    vertices.Add(new Vertex(i, j));
-            }
+            return [[.. horizontalMovement, .. verticalMovement.Append('A')]];
         }
-        for (var i = 0; i < maze.Count; i++)
+        if (maze[fromI][toJ] is '#')
         {
-            for (var j = 0; j < maze[i].Count; j++)
-            {
-                if (vertices.TryGetValue(new Vertex(i, j), out var v))
-                {
-                    if (vertices.TryGetValue(new Vertex(i + 1, j), out var adj))
-                    {
-                        v.Adjacency.Add(new Edge(v, adj, 100 - j));
-                    }
-                    if (vertices.TryGetValue(new Vertex(i, j + 1), out adj))
-                    {
-                        v.Adjacency.Add(new Edge(v, adj, 100 - j));
-                    }
-                    if (vertices.TryGetValue(new Vertex(i - 1, j), out adj))
-                    {
-                        v.Adjacency.Add(new Edge(v, adj, 100 - j));
-                    }
-                    if (vertices.TryGetValue(new Vertex(i, j - 1), out adj))
-                    {
-                        v.Adjacency.Add(new Edge(v, adj, 100 - j));
-                    }
-                }
-            }
+            return [[.. verticalMovement, .. horizontalMovement.Append('A')]];
         }
-        _ = vertices.TryGetValue(new Vertex(fromI, fromJ), out var start);
-        _ = vertices.TryGetValue(new Vertex(toI, toJ), out var end);
-        _ = vertices.DijkstraWithPrevious(start!, end!, out var previousVertex);
 
-        var minPath = GetMinPathVetices(previousVertex, start!, end!);
-
-        return minPath;
-
-        static List<char> GetMinPathVetices(IDictionary<Vertex, Vertex> previous, Vertex start, Vertex end)
-        {
-            var path = new List<char>();
-            var current = end;
-            while (current != start)
-            {
-                var previousVertex = previous[current];
-                if (current.I > previousVertex.I)
-                    path.Insert(0, 'v');
-                if (current.I < previousVertex.I)
-                    path.Insert(0, '^');
-                if (current.J > previousVertex.J)
-                    path.Insert(0, '>');
-                if (current.J < previousVertex.J)
-                    path.Insert(0, '<');
-                current = previousVertex;
-            }
-            path.Add('A');
-
-            return path;
-        }
+        return
+        [
+            [.. horizontalMovement, .. verticalMovement.Append('A')],
+            [.. verticalMovement, .. horizontalMovement.Append('A')],
+        ];
     }
 
     public string SolvePart2(string input)
