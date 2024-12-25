@@ -148,6 +148,92 @@ public class Day21 : IDay
 
     public string SolvePart2(string input)
     {
-        return "not solved";
+        var directionalSequencesByNumericKeyPair = numericKeys
+            .SelectMany(n => numericKeys.Select(m => (From: n, To: m)))
+            .ToDictionary(key => key, value => new List<List<char>>());
+        foreach (var pair in directionalSequencesByNumericKeyPair)
+        {
+            directionalSequencesByNumericKeyPair[pair.Key] = BfsNumericKeypad(pair.Key.From, pair.Key.To);
+        }
+        var directionalSequenceByDirectionalFromTo = directionalKeys
+            .SelectMany(n => directionalKeys.Select(m => (From: n, To: m)))
+            .ToDictionary(key => key, value => new List<List<char>>());
+        foreach (var pair in directionalSequenceByDirectionalFromTo)
+        {
+            directionalSequenceByDirectionalFromTo[pair.Key] = BfsDirectionalKeypad(pair.Key.From, pair.Key.To);
+        }
+
+        var codesRaw1 = input.ParseLines()
+            .Select(c => ChangeCodeToRobotInstruction(c, directionalSequencesByNumericKeyPair))
+            .ToList();
+
+        var codes = codesRaw1
+            .Select(d => d.Select(c => ChangeCodeToRobotInstructionWithMemorization(c, 25, directionalSequenceByDirectionalFromTo, [])).ToList())
+            .ToList();
+        var trimmedCodes = codes.Select(TrimmCodes).ToList();
+        var numericValuesOfCodes = input.ParseLines().Select(l => long.Parse(l[..3])).ToList();
+
+        var sum = (long)0;
+        for (var i = 0; i < trimmedCodes.Count; i++)
+        {
+            sum += numericValuesOfCodes[i] * trimmedCodes[i].First().Length;
+        }
+
+        return sum.ToString();
+    }
+
+
+    private string ChangeCodeToRobotInstructionWithMemorization(
+        string code,
+        int level,
+        Dictionary<(char From, char To), List<List<char>>> directionalSequencesByKeyPair,
+        Dictionary<(string SubCode, int Level), string> memory)
+    {
+        if (level is 0)
+        {
+            return code;
+        }
+
+        if (memory.TryGetValue((code, level), out var minimumInstruction))
+        {
+            return minimumInstruction;
+        }
+        var fragments = code.Split('A', StringSplitOptions.TrimEntries).Select(s => s + "A").ToList();
+        fragments.RemoveAt(fragments.Count - 1);
+
+        var minimumFragments = fragments.Select(fragment =>
+        {
+            var finalInstructions = new List<string>();
+            BuildSequence("A" + fragment, 0, "", finalInstructions);
+
+            var sortedIstructions = finalInstructions
+                .Select(i => ChangeCodeToRobotInstructionWithMemorization(i, level - 1, directionalSequencesByKeyPair, memory))
+                .ToList();
+            sortedIstructions.Sort((i, j) => i.Length - j.Length);
+
+            return sortedIstructions.First();
+        }).ToArray();
+
+        var instruction = string.Join("", minimumFragments);
+        memory.Add((code, level), instruction);
+        return instruction;
+
+        void BuildSequence(
+        string code,
+        int index,
+        string currentSequence,
+        List<string> finalInstructions)
+        {
+            if (index == code.Length - 1)
+            {
+                finalInstructions.Add(currentSequence);
+                return;
+            }
+
+            foreach (var sequence in directionalSequencesByKeyPair[(code[index], code[index + 1])])
+            {
+                BuildSequence(code, index + 1, currentSequence + new string(sequence.ToArray()), finalInstructions);
+            }
+        }
     }
 }
