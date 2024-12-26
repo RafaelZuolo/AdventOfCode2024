@@ -170,38 +170,38 @@ public class Day21 : IDay
         var codes = codesRaw1
             .Select(d => d.Select(c => ChangeCodeToRobotInstructionWithMemorization(c, 25, directionalSequenceByDirectionalFromTo, [])).ToList())
             .ToList();
-        var trimmedCodes = codes.Select(TrimmCodes).ToList();
+        var minimumCodesLenght = codes.Select(s => s.Min()).ToList();
         var numericValuesOfCodes = input.ParseLines().Select(l => long.Parse(l[..3])).ToList();
 
         var sum = (long)0;
-        for (var i = 0; i < trimmedCodes.Count; i++)
+        for (var i = 0; i < minimumCodesLenght.Count; i++)
         {
-            sum += numericValuesOfCodes[i] * trimmedCodes[i].First().Length;
+            sum += numericValuesOfCodes[i] * minimumCodesLenght[i];
         }
 
         return sum.ToString();
     }
 
 
-    private string ChangeCodeToRobotInstructionWithMemorization(
+    private long ChangeCodeToRobotInstructionWithMemorization(
         string code,
         int level,
         Dictionary<(char From, char To), List<List<char>>> directionalSequencesByKeyPair,
-        Dictionary<(string SubCode, int Level), string> memory)
+        Dictionary<(string SubCode, int Level), long> memory)
     {
         if (level is 0)
         {
-            return code;
+            return code.Length;
         }
 
-        if (memory.TryGetValue((code, level), out var minimumInstruction))
+        if (memory.TryGetValue((code, level), out var minimumInstructionLenght))
         {
-            return minimumInstruction;
+            return minimumInstructionLenght;
         }
         var fragments = code.Split('A', StringSplitOptions.TrimEntries).Select(s => s + "A").ToList();
         fragments.RemoveAt(fragments.Count - 1);
 
-        var minimumFragments = fragments.Select(fragment =>
+        var minimumFragmentsLenghts = fragments.Select(fragment =>
         {
             var finalInstructions = new List<string>();
             BuildSequence("A" + fragment, 0, "", finalInstructions);
@@ -209,14 +209,14 @@ public class Day21 : IDay
             var sortedIstructions = finalInstructions
                 .Select(i => ChangeCodeToRobotInstructionWithMemorization(i, level - 1, directionalSequencesByKeyPair, memory))
                 .ToList();
-            sortedIstructions.Sort((i, j) => i.Length - j.Length);
+            sortedIstructions.Sort();
 
             return sortedIstructions.First();
         }).ToArray();
 
-        var instruction = string.Join("", minimumFragments);
-        memory.Add((code, level), instruction);
-        return instruction;
+        var instructionLenght = minimumFragmentsLenghts.Sum();
+        memory.Add((code, level), instructionLenght);
+        return instructionLenght;
 
         void BuildSequence(
         string code,
