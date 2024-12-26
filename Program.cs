@@ -29,7 +29,7 @@ IReadOnlyDictionary<int, IDay> DayByNumber = new Dictionary<int, IDay>
     { 24, new Day24() },
     { 25, new Day25() },
 };
-const int DebbugDay = 15;
+const int DebbugDay = 24;
 var isTest = args.Contains("-t");
 var projectPath = Directory.GetCurrentDirectory();
 var currentDay = args.Contains("-d") ? int.Parse(args[Array.IndexOf(args, "-d") + 1]) : DebbugDay;

@@ -69,7 +69,70 @@ public class Day24 : IDay
 
     public string SolvePart2(string input)
     {
-        return "not solved";
+        var splittedInput = input.Split(
+            Environment.NewLine + Environment.NewLine,
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var wires = new Dictionary<string, Wire>();
+
+        var gates = new HashSet<Gate>();
+        foreach (var line in splittedInput[1].ParseLines())
+        {
+            var firstSplit = line.Split(" -> ");
+            if (!wires.TryGetValue(firstSplit[1], out var output))
+            {
+                output = new Wire(firstSplit[1]);
+                wires.Add(output.Name, output);
+            }
+
+            var secondSplit = firstSplit[0].Split(' ');
+            if (!wires.TryGetValue(secondSplit[0], out var input1))
+            {
+                input1 = new Wire(secondSplit[0]);
+                wires.Add(input1.Name, input1);
+            }
+            if (!wires.TryGetValue(secondSplit[2], out var input2))
+            {
+                input2 = new Wire(secondSplit[2]);
+                wires.Add(input2.Name, input2);
+            }
+
+            var gate = new Gate(line)
+            {
+                Operation = Gate.ParseOperator(secondSplit[1]),
+                Next = output,
+            };
+            gates.Add(gate);
+
+            input1.Next.Add(gate);
+            input2.Next.Add(gate);
+        }
+
+        foreach (var l in splittedInput[0].ParseLines())
+        {
+            var parts = l.Split(": ");
+            if (wires.TryGetValue(parts[0], out var start))
+            {
+                start.State = parts[0].StartsWith('x');
+            }
+        }
+
+        while (wires.Values.Where(w => w.Name.StartsWith('z')).Any(w => w.State is null))
+        {
+            foreach (var w in wires.Values.Where(w => w.State is not null && !w.WasOperated))
+            {
+                w.Operate();
+                w.UpdateGates(w.State);
+            }
+        }
+
+        var zWires = wires.Values.Where(w => w.Name.StartsWith('z')).ToList();
+        zWires.Sort((w, z) => -int.Parse(w.Name[1..]) + int.Parse(z.Name[1..]));
+
+        return string.Join("", zWires.Select(z => z.State!.Value ? "1" : "0"))
+            + Environment.NewLine
+            + " Use this to help with mannualy investigating the input. The correct output should be:"
+            + "0111111111111111111111111111111111111111111111";
     }
 
     class Node(string name) : IEquatable<Node>
